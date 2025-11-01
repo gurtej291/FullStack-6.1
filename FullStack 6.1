@@ -1,0 +1,51 @@
+
+const requests = [
+  { method: "GET", url: "/public", headers: {} },
+  { method: "GET", url: "/protected", headers: { Authorization: "Bearer wrongtoken" } },
+  { method: "GET", url: "/protected", headers: { Authorization: "Bearer mysecrettoken" } }
+];
+
+// --- Logging Middleware ---
+function logRequest(req) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+}
+
+// --- Authentication Middleware ---
+function authenticate(req) {
+  const authHeader = req.headers.Authorization;
+  if (!authHeader) {
+    return { status: 401, message: "❌ Unauthorized: Missing Authorization header" };
+  }
+  const token = authHeader.split(" ")[1];
+  if (token !== "mysecrettoken") {
+    return { status: 403, message: "🚫 Forbidden: Invalid token" };
+  }
+  return { status: 200, message: "✅ Access granted" };
+}
+
+// --- Route Handlers ---
+function publicRoute(req) {
+  console.log("🌐 Public Route: Accessible by anyone!");
+}
+
+function protectedRoute(req) {
+  const authResult = authenticate(req);
+  if (authResult.status === 200) {
+    console.log("🔒 Protected Route: Secure data accessed successfully!");
+  } else {
+    console.log(authResult.message);
+  }
+}
+
+// --- Simulate Request Flow ---
+console.log("==============================================");
+console.log(" MIDDLEWARE IMPLEMENTATION (SIMULATION DEMO) ");
+console.log("==============================================");
+
+for (const req of requests) {
+  logRequest(req);
+  if (req.url === "/public") publicRoute(req);
+  else if (req.url === "/protected") protectedRoute(req);
+  console.log("----------------------------------------------");
+}
